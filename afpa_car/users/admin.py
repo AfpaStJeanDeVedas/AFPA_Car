@@ -14,10 +14,10 @@ class UserAdmin(BaseUserAdmin):
     # These override the definitions on the base UserAdmin
     # that reference specific fields on auth.User.
 
-    list_display = ('email','username', 'admin', 'active', 'staff')
+    list_display = ('email','username', 'active', 'admin',  'staff')
     list_filter = ('admin', 'active', 'staff')
     fieldsets = (
-        (None, {'fields': ('email', 'username',)}),
+        (None, {'fields': ('email', 'username', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name')}),
         ('Permissions', {'fields': ('admin', 'staff', 'active')}),
     )
@@ -26,7 +26,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'username', 'first_name', 'last_name', 'password1', 'password2')}
+            'fields': ('first_name', 'last_name', 'email', 'username',  'password1', 'password2','active', 'staff', 'admin')}
         ),
     )
     search_fields = ('email',)
@@ -36,4 +36,4 @@ class UserAdmin(BaseUserAdmin):
 admin.site.register(User, UserAdmin)
 
 # Remove Group Model from admin. We're not using it.
-admin.site.unregister(Group)
+# admin.site.unregister(Group)
