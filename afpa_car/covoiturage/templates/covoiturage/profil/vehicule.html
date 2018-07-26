@@ -1,8 +1,17 @@
-<!-- ##### Vehicule ##### -->
+{% extends 'covoiturage/profil.html' %}
 
-                <div class="row">
-                    <div id="titre_profil" class="card-header bg-success col-md-12 mb-3">Vehicule</div>
-                </div>
+{% block cardTitle %} 
+
+<div class="row">
+    <div id="titre_profil" class="card-header bg-success col-md-12 mb-3">Vehicule</div>
+</div>
+
+{% endblock cardTitle %}
+
+{% block contenuProfil %}
+
+                    {% comment %}
+                    
                     <div id="checkbox_profil">
                         <label>Êtes-vous propriétaire d'un vehicule ?</label>
                         <div class="custom-control custom-radio">
@@ -13,7 +22,14 @@
                             <input type="radio" class="custom-control-input" id="non_vehicule" name="vehicule_bool" checked>
                             <label class="custom-control-label" for="non_vehicule">Non</label>
                         </div>
-                    </div>
+                    </div>{% endcomment %}
+                    <form action="." method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <input type="submit" value="Envoyer">
+                    </form>
+                    
+                    
 
 <!-- ##### PREMIER VEHICULE ##### -->
 
@@ -49,7 +65,7 @@
                             </div>
                         </form>
                         <div id="submit_vehicule1">
-                            <button type="submit" class="btn btn-success">Submit</button>
+                            <button type="submit" class="btn btn-success">Envoyer</button>
                         </div>
                 <div class="row mb-3">
                         <div class="col-md-4"></div>
@@ -94,7 +110,7 @@
                                     </div>
                                 </form>
                                 <div id="submit_vehicule1">
-                                    <button type="submit" class="btn btn-success">Submit</button>
+                                    <button type="submit" class="btn btn-success">Envoyer</button>
                                 </div>
                         </div>
                     </div>
@@ -109,6 +125,7 @@
         /* ###### Fonctions pour ajouter les vehicules ###### */
 
         $(function($){
+
             $('#oui_vehicule').click(function(e){
                 console.log('oui ok')
                 $('#vehicule_info').removeClass('hidden');
@@ -117,12 +134,14 @@
             });
             $('#non_vehicule').click(function(e){
                 console.log('non ok')
-                $('#vehicule_info').addClass('hidden');
+                /* $('#vehicule_info').addClass('hidden');
+                $('#contenu').css('height', '450px');
+                $('#vehicule2_info').addClass('hidden'); */
+                location.reload();
                 
             });
-        });
-
-        $(function($){
+        
+           
             $('#add_vehicule').click(function(e){
                 console.log('add ok')
                 $('#vehicule2_info').removeClass('hidden');
@@ -133,11 +152,11 @@
                 $('#contenu').css('height', '950px');
                 
             });
-        });
+
 
         /* ###### Fonctions pour supprimer les vehicules ###### */
 
-        $(function($){
+ 
             $('#supprimer_vehicule').click(function(e){
                 console.log('suppr ok')
                 $('#vehicule_info').addClass('hidden');
@@ -146,9 +165,9 @@
                 $('#vehicule').css('height', '450px');
                 $('#contenu').css('height', '450px');                
             });
-        });
 
-        $(function($){
+
+
             $('#supprimer_vehicule2').click(function(e){
                 console.log('suppr2 ok')
                 $('#vehicule2_info').addClass('hidden');
@@ -159,11 +178,12 @@
                 $('#vehicule').css('height', '630px');
                 $('#contenu').css('height', '630px');  
                 
-            });
+            }); 
         });
 
+        
+
+            
 </script>
 
-
-
-</body>
+{% endblock contenuProfil %}

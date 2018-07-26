@@ -5,18 +5,21 @@ from django.utils import timezone
 from .managers import UserManager
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email       = models.EmailField(max_length=255, unique=True, verbose_name='email adress')
-    username    = models.CharField(max_length=15, unique=True, verbose_name = 'pseudo',)
-    first_name  = models.CharField(max_length=30, verbose_name = 'prénom')
-    last_name   = models.CharField(max_length=50, verbose_name = 'nom')
-    active      = models.BooleanField(default=True)
-    staff       = models.BooleanField(default=False)
-    admin       = models.BooleanField(default=False)
-    conducteur  = models.BooleanField(default=False)
-    permis      = models.BooleanField(default=False)
-    avatar      = models.ImageField(null=True, blank=True, upload_to='photos/')
-    date_joined = models.DateTimeField(editable=False, default=timezone.now)
+    email           = models.EmailField(max_length=255, unique=True, verbose_name='email adress')
+    username        = models.CharField(max_length=15, unique=True, verbose_name='pseudo',)
+    first_name      = models.CharField(max_length=30, verbose_name='prénom')
+    last_name       = models.CharField(max_length=50, verbose_name='nom')
+    driver_license  = models.BooleanField(default=False, verbose_name="permis")
+    trainee         = models.BooleanField(default=False, verbose_name="stagiaire")
+    car_owner       = models.BooleanField(default=False, verbose_name="propriétaire d'un véhicule",
+                                            choices=( (True, "Oui"), (False, "Non") )
+                                            )
+    avatar          = models.ImageField(null=True, blank=True, upload_to='photos/')
 
+    active          = models.BooleanField(default=True)
+    staff           = models.BooleanField(default=False)
+    admin           = models.BooleanField(default=False)
+    date_joined     = models.DateTimeField(editable=False, default=timezone.now)
     # confirm   = models.BooleanField(default=False)
     # confirmed_date = models.DateTimeField(default=False)
 
@@ -54,7 +57,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     @property
     def is_admin(self):
         return self.admin
-    
-    @property
-    def is_conducteur(self):
-        return self.conducteur
+
+class PrivateData(models.Model):
+    user            = models.OneToOneField(User, on_delete=models.CASCADE)
+    phone_number    = models.CharField(max_length=15, null=True)
+    afpa_number     = models.CharField(max_length=15, null=True)

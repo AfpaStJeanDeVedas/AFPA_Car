@@ -1,15 +1,21 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>{% block title %}AFPA-CAR{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"> 
-    {% load static %}
+    
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'covoiturage/css/signup.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'covoiturage/css/profil.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'covoiturage/css/dashboard.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'covoiturage/css/calendar.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'covoiturage/css/index.css' %}" />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp"
         crossorigin="anonymous">
 
@@ -27,48 +33,57 @@
     
     <header class="row">
         <div class="col-md-4">
-            <img id="logo_afpa" src="{% static 'img/logo_afpa.jpg' %}" alt="AFPA">
+            <a href="{% url 'covoiturage:index' %}"><img id="logo_afpa" src="{% static 'img/logo_afpa.jpg' %}" alt="AFPA"></a>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-6">
             <div id="titre_base">AFPACAR - Le covoiturage de l'Afpa</div>
         </div>
     </header>
 
-    <navbar class="row">
+    <div>
+        {% if user.is_authenticated %}
+        <navbar class="row">
             <nav id="navbar" class="site-header sticky-top py-1 col-md-12">
-                <div class="container d-flex flex-column flex-md-row justify-content-between">
-                    <a class="py-2 d-none d-md-inline-block" href="#">Tableau de bord</a>
-                    <a class="py-2 d-none d-md-inline-block" href="http://127.0.0.1:8000/profil/">Profil</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Semaine Type / Calendrier</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Messagerie</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Rechercher un trajet</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Afpa</a>
-            </nav>
+                    <div class="container d-flex flex-column flex-md-row justify-content-between">
+                        <a class="py-2 d-none d-md-inline-block" href="{% url 'covoiturage:dashboard'%}">Tableau de bord</a>
+                        <a class="py-2 d-none d-md-inline-block" href="{% url 'covoiturage:profil' %}">Profil</a>
+                        <a class="py-2 d-none d-md-inline-block" href="{% url 'covoiturage:calendar' %}">Semaine Type / Calendrier</a>
+                        <a class="py-2 d-none d-md-inline-block" href="#">Messagerie</a>
+                        <a class="py-2 d-none d-md-inline-block" href="#">Rechercher un trajet</a>
+                        <a class="py-2 d-none d-md-inline-block" href="#">Afpa</a>
+                        <a href="{% url 'covoiturage:logout' %}" class="btn fas fa-sign-out-alt" id="logout" title="Déconnexion"></a>
+                    </nav>
+                </div>
+            </navbar>
+        {% else %}
+        <div class="row">
+                <div class="col-md-12" id="bandeau_footer"></div>
         </div>
-    </navbar>
+        {% endif %}
+    </div>
 
-    <section>
-
-        <div>
-            {% block content %}{% endblock %}
-        </div>
-
-    </section>  
+    <div>
+        {% block section %}{% endblock %}
+    </div> 
 
     <footer>
         <div class="row">
             <div class="col-md-12" id="bandeau_footer"></div>
         </div>
+
         <div class="row">
             <div class="col-md-12">
-                <a id="icon_footer" href="#" class="fab fa-facebook-f"></a>
-                <a id="icon_footer" href="#" class="fab fa-twitter"></a>
-                <a id="icon_footer" href="#" class="fab fa-youtube"></a>
-                <a id="icon_footer" href="#" class="fab fa-linkedin-in"></a>
-                <a id="icon_footer" href="#" class="fab fa-viadeo"></a>
+                <h5><br>Notre Equipe<br></h5>
+                <hr class="hr_up">
+                <img src="{% static 'img/borisv2.png' %}" id="icone_avatar" title="Boris">
+                <img src="{% static 'img/simonB.png' %}" id="icone_avatar" title="Simon B">
+                <img src="{% static 'img/kaklemakak.png' %}" id="icone_avatar" title="Simon M">
+                <img src="{% static 'img/Damien.PNG' %}" id="icone_avatar" title="Damien">
+                <img src="{% static 'img/Thibaud.PNG' %}" id="icone_avatar" title="Thibaud">
             </div>
         </div>
-        <hr style="height: 2px; color: lightgray; background-color: lightgray; width: 400px; border: none;">
+
+        <hr class="hr_down">
 
         <div id="liens_footer" class="col-md-12">
             <a>CGU</a>
@@ -77,7 +92,6 @@
             <span id="border_test"></span>
             <a>Plan du site</a>
         </div>
-
     </footer>
 
 
