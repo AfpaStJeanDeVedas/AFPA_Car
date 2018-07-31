@@ -1,5 +1,10 @@
-# afpa_car
-Notre projet covoit.
+# :notebook_with_decorative_cover: projet_afpa_car
+_notre projet covoit_
 
 
-2018/07/31 : tag v0.1 -> Users, dashboard OK.
+------------------------------------
+
+
+Date | Version | Features
+----| ----| ----
+2018/07/31 | Version 0.1 | Users, Dashboard
