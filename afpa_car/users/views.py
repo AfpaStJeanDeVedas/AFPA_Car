@@ -1,93 +1,131 @@
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+import datetime
+
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash, get_user_model
 from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponseRedirect
+from django.contrib.sites.shortcuts import get_current_site
+from django.contrib.auth.views import (PasswordResetView as BasePasswordResetView, PasswordResetDoneView, 
+                                        PasswordResetConfirmView as BasePasswordResetConfirmView, PasswordResetCompleteView )
+from django.core.mail import EmailMessage, EmailMultiAlternatives                                        
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
-from django.utils.http import is_safe_url
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
-from django.views.generic import CreateView, FormView
+from django.utils import timezone
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import is_safe_url, urlsafe_base64_encode, urlsafe_base64_decode
+from django.views import View
+from django.views.generic import CreateView, FormView, TemplateView
 
-from .forms import LoginForm, SignupForm, LogoutForm, PrivateDataCreateForm
+from .forms import LoginForm, SignupForm, LogoutForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
+from .tokens import account_activation_token
 
+User = get_user_model()
 
-# class SignupView(CreateView):
-#     form_class = SignupForm
-#     template_name = 'users/signup.html'
-#     success_url = reverse_lazy('covoiturage:index')
+class SignUpView(CreateView):
+    template_name = "users/signup.html"
+    form_class = SignupForm
+    subject_template_name = 'users/activation_email_subject.txt'
+    email_template_name = 'users/activation_email.html'
+    from_email = None
+    token_generator = account_activation_token
 
-def signup_view(request):
-    signup_form = SignupForm(request.POST or None)
-    private_data_form = PrivateDataCreateForm(request.POST or None)
-    if signup_form.is_valid() and private_data_form.is_valid():
-        user = signup_form.save()
-        private_data = private_data_form.save(commit=False)
-        private_data.user = user
-        private_data.save()
+    def send_mail(self, subject_template_name, email_template_name,
+                    context, from_email, to_email):
+        subject = render_to_string(subject_template_name, context)
+        subject = ''.join(subject.splitlines())
+        body = render_to_string(email_template_name, context)
 
-        return redirect("covoiturage:index")
-
-    return render(
-        request, 
-        'covoiturage/signup.html', 
-        {   'signup_form': signup_form,
-            'private_data_form': private_data_form,}
-    )
-
-
-class LoginView(FormView):
-    form_class  = LoginForm
-    template_name = 'covoiturage/index.html'
-    success_url = reverse_lazy('covoiturage:dashboard')
+        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
+        email_message.send()
 
     def form_valid(self, form):
-        request = self.request
-        next_ = request.GET.get('next')
-        next_post = request.GET.get('next')
-        redirect_path = next_ or next_post or None
-        email = form.cleaned_data.get('email')
-        password = form.cleaned_data.get('password')
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            login(request, user)
-            try:
-                del request.session['guest_email_id']
-            except:
-                pass
-            if is_safe_url(redirect_path, request.get_host()):
-                return redirect(redirect_path)
-            else:
-                return redirect('covoiturage:dashboard')
-        print("pas valide")
-        return super(LoginView, self).form_invalid(form)
+        user = form.save()
+        user.is_active = False
+        user.save()
+        user.private_data.afpa_number = form.cleaned_data["afpa_number"]
+        user.private_data.phone_number = form.cleaned_data["phone_number"]
+        user.private_data.save()    
 
-    def get(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            return redirect('covoiturage:dashboard')
+        # Envoie email de confirmation
+        current_site = get_current_site(self.request)
+        site_name = current_site.name
+        domain = current_site.domain
+        uid = urlsafe_base64_encode(force_bytes(user.pk)).decode()
+        token = self.token_generator.make_token(user)
+        use_https = self.request.is_secure()
+
+        context = {
+            'domain': domain,
+            'site_name': site_name,
+            'uid': uid,
+            'token': token,
+            'protocol': 'https' if use_https else 'http',
+        }
+
+        subject_template = self.subject_template_name
+        email_template = self.email_template_name
+        from_email = self.from_email
+        email = user.email
+
+        self.send_mail(
+            subject_template, email_template, context, from_email,
+            email,
+        )
+
+        return render(self.request, 'users/activation_link_send.html')
+
+class Activate(View):
+    def get(self, request, uidb64, token):
+        try:
+            uid = force_text(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+        if user is not None and account_activation_token.check_token(user, token):
+            user.is_active = True
+            user.confirm = True
+            user.confirmation_date = timezone.now()
+            user.save()
+            return render(request, 'users/activation.html')
         else:
-            # Omit the form if you are not using it.
-            form = self.form_class() 
-            return render(request, self.template_name, {'form': form})
+            return render(request, 'users/activation_link_invalid.html',)
+
+class LoginView(BaseLoginView):
+    form_class = LoginForm
+    template_name = 'carpooling/index.html'
 
 class LogoutView(LoginRequiredMixin, FormView):
     form_class = LogoutForm
-    template_name = 'covoiturage/logout.html'
+    template_name = 'users/logout.html'
 
     def form_valid(self, form):
         logout(self.request)
-        return HttpResponseRedirect(reverse('covoiturage:index'))
+        return HttpResponseRedirect(reverse('carpooling:index'))
 
+class ChangePassword(LoginRequiredMixin, TemplateView):
+    template_name = 'carpooling/profil/password.html'
 
-def change_password(request):
-    if request.method == 'POST':
+    def get(self, request):
+        form = PasswordChangeForm(user=request.user)
+        return render(request, self.template_name, {'form': form })
+
+    def post(self, request):
         form = PasswordChangeForm(data=request.POST, user=request.user)
         if form.is_valid():
-            print('form valide')
             form.save()
             update_session_auth_hash(request, form.user)
-            return redirect('covoiturage:dashboard')
+            return redirect('carpooling:dashboard')
+        return render(request, self.template_name, {'form': form })
 
-    else: 
-        form = PasswordChangeForm(user=request.user)
+class PasswordResetView(BasePasswordResetView):
+    email_template_name = 'users/password_reset_email.html'
+    template_name = 'users/password_reset_form.html'
+    success_url = reverse_lazy('users:password_reset_done')
+    form_class = PasswordResetForm
 
-    context = {'form': form }
-    return render(request, 'covoiturage/profil/password.html', context)
+class PasswordResetConfirmView(BasePasswordResetConfirmView):
+    template_name = 'users/password_reset_confirm.html'
+    success_url = reverse_lazy('users:password_reset_complete')
+    form_class = SetPasswordForm
