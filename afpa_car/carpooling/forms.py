@@ -1,7 +1,9 @@
-from django import forms
-from django.forms import TextInput, RadioSelect, Select, DateInput, FileInput, CheckboxInput
+from functools import partial, wraps
 
-from .models import Car, AfpaCenter, Address
+from django import forms
+from django.forms import TextInput, RadioSelect, Select, DateInput, FileInput, CheckboxInput, TimeInput, CheckboxSelectMultiple, modelformset_factory
+
+from .models import Car, AfpaCenter, Address, DefaultTrip
 from users.models import PrivateData, User, UserProfile
 
 
@@ -78,10 +80,23 @@ class CarForm(forms.ModelForm):
             'fuel': 'Carburant',
         }
 
+    def clean_amount_of_free_seats(self):
+        amount_of_free_seats = int(self.cleaned_data['amount_of_free_seats'])
+        if amount_of_free_seats < 1:
+            raise forms.ValidationError('Il doit y avoir au moins une place de libre dans votre véhicule')
+        return amount_of_free_seats
+
+    def clean_consumption(self):
+        consumption = int(self.cleaned_data['consumption'])
+        if consumption < 1:
+            raise forms.ValidationError('Le nombre entré est incorrect')
+        return consumption
+
 class ProfilImageUpdateForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ('profile_image', )
+
     profile_image = forms.ImageField(label='Image de Profil', required=False,
                                     error_messages ={'invalid': "Importer uniquement un fichier .png ou .jpg"},
                                     widget=FileInput(attrs={'class': 'custom-file-input',
@@ -90,17 +105,16 @@ class ProfilImageUpdateForm(forms.ModelForm):
                                         widget=CheckboxInput(attrs={'class': 'custom-control-input'}))
 
     def save(self, commit=False, *args, **kwargs):
-        user_profile = super(ProfilImageUpdateForm, self).save(commit=False, *args, **kwargs)
+        user_profile = super().save(commit=False, *args, **kwargs)
+        
         if self.cleaned_data['remove_profile_image']:
-            user_profile.profile_image = None
+            default_image = user_profile._meta.get_field('profile_image').get_default()
+            user_profile.profile_image = default_image
             user_profile.save()
         else:
             user_profile.profile_image = self.cleaned_data['profile_image']
-            print(user_profile.profile_image)
             user_profile.save()
         return user_profile
-
-
 
 class PreferencesForm(forms.ModelForm):
     class Meta:
@@ -113,26 +127,49 @@ class PreferencesForm(forms.ModelForm):
         }
 
 class AddressForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(AddressForm, self).__init__(*args, **kwargs)
-        self.fields['zip_code'].required = True
-        self.fields['city'].required = True
-        self.fields['street_name'].required = True
 
     class Meta: 
         model = Address
-        fields = ('zip_code', 'city', 'street_number', 'street_name', 'address_label')
+        fields = ('address_label',)
+
+    address_label = forms.CharField(widget=TextInput(attrs={'class': 'form-control require-input'}), label="Libellé de l'Adresse",
+                                    required=True)
+    city_zip_code = forms.CharField(widget=TextInput(attrs={'class': 'form-control require-input', 
+                                                            'v-model': 'cityZipCode', 'autocomplete': 'off'}),
+                                    label="Ville ou Code Postal", required=True)
+
+    address = forms.CharField(widget=TextInput(attrs={'class': 'form-control require-input', 
+                                                            'v-model': 'address', 'autocomplete': 'off'}),
+                            label="Adresse", required=True)
+    json_hidden = forms.CharField(widget=forms.HiddenInput(attrs={'v-model': 'addressJSON'}))
+
+class DefaultTripForm(forms.ModelForm):
+
+    has_for_start = forms.ModelChoiceField(queryset=None, widget=Select(attrs={'class': 'custom-select'}), 
+                                            label="Départ", required=False )
+                                                
+    def __init__(self, user=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['has_for_start'].queryset = Address.objects.filter(user=user)
+
+    class Meta:
+        model = DefaultTrip
+        fields =('morning_departure_time', 'morning_arriving_time', 'evening_departure_time','has_for_start', 'deactivate' )
         widgets = {
-            'zip_code': TextInput(attrs={'class': 'form-control require-input'}),
-            'city': TextInput(attrs={'class': 'form-control require-input'}),
-            'street_number': TextInput(attrs={'class': 'form-control'}),
-            'street_name': TextInput(attrs={'class': 'form-control require-input'}),
-            'address_label': TextInput(attrs={'class': 'form-control'}),
+            'morning_departure_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
+            'morning_arriving_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
+            'evening_departure_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
+            'deactivate': CheckboxInput(attrs={'type': 'checkbox', 'class': 'form-control require-input', 'onclick' : 'f(this)'}),
         }
-        labels = {
-            'zip_code': 'Code Postal',
-            'city': 'Ville',
-            'street_number': 'Numéro de la Rue' ,
-            'street_name': 'Nom de la Rue',
-            'address_label': "Libellé de l'Adresse",
-        }
+
+DefaultTripFormSet = modelformset_factory(DefaultTrip ,form=DefaultTripForm,
+                                        extra=5, max_num=5, 
+                                        fields = ('morning_departure_time', 'morning_arriving_time', 
+                                                    'evening_departure_time','has_for_start', 'deactivate'))
+
+class ContactForm(forms.Form):
+    email = forms.EmailField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Adresse Email'}), 
+                            label='Adresse Email',)
+    name = forms.CharField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Votre nom'}))
+    subject = forms.CharField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Sujet du Message'}))
+    message = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Votre Message'}))

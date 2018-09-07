@@ -1,8 +1,12 @@
 /* ###### MODIFICATION GENERAL POUR TOUT LE SITE ###### */
+html{
+    background-color: #eeeeee;
+}
 
 .custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
     background-color: #E3007E;
-  }
+}
+
 
 .custom-select {
     background: #fff url("../img/icon-controler.svg") no-repeat right 0.75rem center;
@@ -139,7 +143,7 @@ footer
     border-color: #8c8b8b; 
     border-width: 1px 0 0 0; 
     border-radius: 20px; 
-    width: 500px;
+    width: 650px;
     margin-top: 20px;
     margin-bottom: 15px;
   } 
@@ -153,7 +157,7 @@ footer
     border-color: #8c8b8b; 
     border-width: 0 0 1px 0; 
     border-radius: 20px; 
-    width: 500px;
+    width: 650px;
     margin-bottom: 20px;
   }
 

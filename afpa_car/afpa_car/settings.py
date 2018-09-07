@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 
-from .databases_settings import DATABASES
 # from .email_settings import EMAIL_USE_TLS, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD, EMAIL_PORT
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -28,7 +27,7 @@ SECRET_KEY = 'j@&a0cmkkh)_00n#(jze%=sbofi&u0*d1xh1&xb_v2+2#f0d26'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','10.111.62.43', '127.0.0.1', '10.111.61.90', '10.111.62.4', '10.111.61.88', '192.168.1.42']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -39,8 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'chat',
     'users',
     'carpooling',
+    # 'channels', #pour les websockets
 ]
 
 
@@ -56,6 +57,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'afpa_car.urls'
+
 
 TEMPLATES = [
     {
@@ -79,6 +81,14 @@ WSGI_APPLICATION = 'afpa_car.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 
+# DATABASES = {
+#         'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#         }
+# }
+
+from .databases_settings import DATABASES
 DATABASES = DATABASES
 
 # Password validation
@@ -144,6 +154,7 @@ LOGIN_EXEMPT_URLS = (
 
 GLOBAL_URLS = (
     r'^cgu/$',
+    r'^contact/$'
 )
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media/')
@@ -155,3 +166,16 @@ MEDIA_URL = '/media/'
 # EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD
 # EMAIL_PORT = EMAIL_PORT
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+#config pour les websockets
+ASGI_APPLICATION = "afpa_car.routing.application"
+
+CHANNEL_LAYERS = { 
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+            # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')] #pour la production
+        },
+    },
+}

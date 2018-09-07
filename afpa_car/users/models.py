@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 from django.db.models.signals import post_save
 from django.utils import timezone
@@ -60,10 +60,10 @@ class UserProfile(models.Model):
     driver_license  = models.BooleanField(default=False, verbose_name="permis",
                                         choices=( (True, "Oui"), (False, "Non")) )
     trainee         = models.BooleanField(default=False, verbose_name="statut",
-                                        choices=( (True, "Stagiare"),(False, "Employé") ))
+                                        choices=( (True, "Stagiaire"),(False, "Employé") ))
     car_owner       = models.BooleanField(default=False, verbose_name="Propriétaire d'un Véhicule",
                                         choices=( (True, "Oui"), (False, "Non")) )
-    profile_image   = models.ImageField(null=True, blank=True, upload_to='avatars/')
+    profile_image   = models.ImageField(blank=True, upload_to='avatars/', default='avatar_generique.jpg')
     smoker          = models.BooleanField(default=False, verbose_name="Fumeur",
                                         choices=( (True, "Fumeur"), (False, 'Non Fumeur')))
     talker          = models.BooleanField(default=False, verbose_name="Bavard",

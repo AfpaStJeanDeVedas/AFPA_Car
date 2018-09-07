@@ -6,7 +6,8 @@ from django.contrib.auth.views import LoginView as BaseLoginView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.views import (PasswordResetView as BasePasswordResetView, PasswordResetDoneView, 
-                                        PasswordResetConfirmView as BasePasswordResetConfirmView, PasswordResetCompleteView )
+                                        PasswordResetConfirmView as BasePasswordResetConfirmView, PasswordResetCompleteView, 
+                                        LogoutView as BaseLogoutView)
 from django.core.mail import EmailMessage, EmailMultiAlternatives                                        
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
@@ -20,10 +21,11 @@ from django.views.generic import CreateView, FormView, TemplateView
 
 from .forms import LoginForm, SignupForm, LogoutForm, PasswordChangeForm, PasswordResetForm, SetPasswordForm
 from .tokens import account_activation_token
+from afpa_car.mixins import SendMailMixin
 
 User = get_user_model()
 
-class SignUpView(CreateView):
+class SignUpView(SendMailMixin, CreateView):
     template_name = "users/signup.html"
     form_class = SignupForm
     subject_template_name = 'users/activation_email_subject.txt'
@@ -31,22 +33,15 @@ class SignUpView(CreateView):
     from_email = None
     token_generator = account_activation_token
 
-    def send_mail(self, subject_template_name, email_template_name,
-                    context, from_email, to_email):
-        subject = render_to_string(subject_template_name, context)
-        subject = ''.join(subject.splitlines())
-        body = render_to_string(email_template_name, context)
-
-        email_message = EmailMultiAlternatives(subject, body, from_email, [to_email])
-        email_message.send()
-
     def form_valid(self, form):
         user = form.save()
         user.is_active = False
         user.save()
         user.private_data.afpa_number = form.cleaned_data["afpa_number"]
         user.private_data.phone_number = form.cleaned_data["phone_number"]
+        user.user_profile.afpa_center = form.cleaned_data["afpa_center"]
         user.private_data.save()    
+        user.user_profile.save()    
 
         # Envoie email de confirmation
         current_site = get_current_site(self.request)
@@ -96,7 +91,7 @@ class LoginView(BaseLoginView):
     form_class = LoginForm
     template_name = 'carpooling/index.html'
 
-class LogoutView(LoginRequiredMixin, FormView):
+class LogoutView(FormView):
     form_class = LogoutForm
     template_name = 'users/logout.html'
 
@@ -104,7 +99,7 @@ class LogoutView(LoginRequiredMixin, FormView):
         logout(self.request)
         return HttpResponseRedirect(reverse('carpooling:index'))
 
-class ChangePassword(LoginRequiredMixin, TemplateView):
+class ChangePassword(View):
     template_name = 'carpooling/profil/password.html'
 
     def get(self, request):

@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.models import Group
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .forms import UserAdminCreationForm, UserAdminChangeForm
+from .forms import UserAdminChangeForm, UserCreationForm
 from .models import User, PrivateData, UserProfile
 
 class PrivateDataInline(admin.StackedInline):
@@ -20,16 +20,16 @@ class UserProfileInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     inlines = (PrivateDataInline, UserProfileInline )
     form = UserAdminChangeForm
-    add_form = UserAdminCreationForm
+    add_form = UserCreationForm
 
     list_display = ('email','username', 'is_active', 'is_admin',  'is_staff', 'date_joined')
     list_filter = ('is_admin', 'is_active', 'is_staff')
-    readonly_fields = ('date_joined', 'confirm', 'confirmation_date')
+    readonly_fields = ('date_joined', 'last_login', 'confirm', 'confirmation_date')
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         ('Personal infos', {'fields': ('first_name', 'last_name',)}),
         ('Permissions', {'fields': ('is_admin', 'is_staff', 'is_active')}),   
-        ('Other infos', {'fields': ('date_joined', 'confirm', 'confirmation_date')}),   
+        ('Other infos', {'fields': ('date_joined', 'last_login', 'confirm', 'confirmation_date')}),   
     )
     add_fieldsets = (
         ('Required Fields', {
@@ -49,7 +49,7 @@ class UserAdmin(BaseUserAdmin):
     def get_inline_instances(self, request, obj=None):
         if not obj:
             return list()
-        return super(UserAdmin, self).get_inline_instances(request, obj)
+        return super().get_inline_instances(request, obj)
 
 admin.site.register(User, UserAdmin)
 

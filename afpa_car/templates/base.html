@@ -14,9 +14,12 @@
     <link rel="stylesheet" type="text/css" href="{% static 'carpooling/css/signup.css' %}" />
     <link rel="stylesheet" type="text/css" href= {% block css %} {% endblock css %} />
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp"
-        crossorigin="anonymous">
-
-
+    crossorigin="anonymous">
+    
+    <!-- TO-DO Clean les import -->
+    <link rel="stylesheet" type="text/css" href="{% static 'carpooling/js/Leaflet/leaflet.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'carpooling/js/Leaflet/Plugins/leaflet-control-geocoder/Control.Geocoder.css' %}" />
+    <link rel="stylesheet" type="text/css" href="{% static 'carpooling/js/Leaflet/Plugins/leaflet-routing-machine/leaflet-routing-machine.css' %}" />
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -45,9 +48,9 @@
                     <a class="py-2 d-none d-md-inline-block" href="{% url 'carpooling:dashboard'%}">Tableau de bord</a>
                     <a class="py-2 d-none d-md-inline-block" href="{% url 'carpooling:general_infos' %}">Profil</a>
                     <a class="py-2 d-none d-md-inline-block" href="{% url 'carpooling:calendar' %}">Semaine Type / Calendrier</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Messagerie</a>
-                    <a class="py-2 d-none d-md-inline-block" href="#">Rechercher un trajet</a>
-                    <a class="py-2 d-none d-md-inline-block" href="https://www.afpa.fr">Afpa</a>
+                    <a class="py-2 d-none d-md-inline-block" href="{% url 'chat:inbox' %}">Messagerie</a>
+                    <a class="py-2 d-none d-md-inline-block" href="{% url 'carpooling:trip' %}">Rechercher un trajet</a>
+                    <a class="py-2 d-none d-md-inline-block" href="https://www.afpa.fr">Afpa.fr</a>
                     <a href="{% url 'users:logout' %}" class="btn fas fa-sign-out-alt" id="logout" title="Déconnexion"></a>
                 </div>
             </nav>
@@ -77,6 +80,8 @@
                 <img src="{% static 'img/kaklemakak.png' %}" id="icone_avatar" title="Simon M">
                 <img src="{% static 'img/Damien.PNG' %}" id="icone_avatar" title="Damien">
                 <img src="{% static 'img/Thibaud.PNG' %}" id="icone_avatar" title="Thibaud">
+                <img src="{% static 'img/flo2.PNG' %}" id="icone_avatar" title="Flo">
+                <img src="{% static 'img/avatarDex.PNG' %}" id="icone_avatar" title="Daniel - 'Dex'">
             </div>
         </div>
 
@@ -88,6 +93,8 @@
             <a href="{% url 'carpooling:cgu' %}#mentionsLegales">Mentions Légales</a>
             <span id="border_test"></span>
             <a>Plan du site</a>
+            <span id="border_test"></span>
+            <a href="{% url 'carpooling:contact' %}">Contact</a>            
             {% if user.is_admin %}
             <span id="border_test"></span>
             <a href="{% url 'admin:index' %}">Administration</a>
@@ -99,22 +106,31 @@
     <!-- jQuery -->
     <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
 
+    <!-- VueJs -->
+    <script type="text/javascript" src="{% static 'js/vue.js' %}"></script>
+
+
     <!-- Bootstrap Core JavaScript -->
     <script src="{% static 'js/bootstrap.js' %}"></script>
 
     <script>
-        $(document).ready(function() {
-
-
-            $("#filtre_url_navbar a").each(function( index ) {
-                if ( this.href == document.location.href)
-                {
-                    $(this).css('color', '#FFF');
-                }
-            })
+        new Vue({
+            el: '#app_filtre_url_contenu',
+            data: {
+        
+            },
+            created: function() { 
+                $("#filtre_url_navbar a").each(function( index ) {
+                    if ( this.href == document.location.href)
+                    {
+                        $(this).css('color', '#FFF');
+                    }
+                })
+            }
         });
-
     </script>
+    {% block script %}
+    {% endblock %}
 
 </body>
 

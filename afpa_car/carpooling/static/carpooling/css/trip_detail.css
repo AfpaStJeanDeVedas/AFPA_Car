@@ -1,0 +1,57 @@
+.rond_trip_detail {
+    border-radius: 50%;
+    height: 60px;
+    width: 60px;
+}
+
+.icon_pref_trip_detail {
+    color : #E3007E;
+    /* width: 25%; */
+    height: 25px;
+    width: 25px;
+}
+
+#map_trip_preview{
+    width: 99%;
+    height: 80%;
+    border: solid 1px lightgrey;
+}
+
+.icons_trip_preview{
+    height: 20px;
+    width: 20px;
+}
+
+.arrow_trip_detail{
+    height: 25px;
+    width: 25px;
+}
+
+#round_seat_car_trip{
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    border: dashed 1px lightgrey;
+}
+
+.yellow{
+    background-color: yellowgreen;
+}
+
+/* MapTrip.css */
+
+/* Personnalisation des popup */
+.leaflet-popup-tip,
+.leaflet-popup-content-wrapper {
+    background: white;
+    color: #e3007e;
+}
+
+.leaflet-control-geocoder-icon{
+    background-image: url(Leaflet/Plugins/leaflet-control-geocoder/images/geocoder.png);
+}
+
+/* Pour masquer complètement les instructions du trajet */ 
+.leaflet-control-container .leaflet-routing-container-hide {
+    display: none;
+}
