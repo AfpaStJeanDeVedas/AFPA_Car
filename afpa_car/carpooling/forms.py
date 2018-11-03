@@ -1,9 +1,7 @@
-from functools import partial, wraps
-
 from django import forms
-from django.forms import TextInput, RadioSelect, Select, DateInput, FileInput, CheckboxInput, TimeInput, CheckboxSelectMultiple, modelformset_factory
+from django.forms import TextInput, RadioSelect, Select, DateInput, FileInput, CheckboxInput, TimeInput, CheckboxSelectMultiple, modelformset_factory, Textarea
 
-from .models import Car, AfpaCenter, Address, DefaultTrip
+from .models import Car, AfpaCenter, Address, DefaultTrip, Proposition
 from users.models import PrivateData, User, UserProfile
 
 
@@ -143,6 +141,12 @@ class AddressForm(forms.ModelForm):
                             label="Adresse", required=True)
     json_hidden = forms.CharField(widget=forms.HiddenInput(attrs={'v-model': 'addressJSON'}))
 
+    def clean(self):
+        json = self.cleaned_data.get('json_hidden')
+        if not json:
+            raise forms.ValidationError("Veuillez sélectionner une adresse")
+        return self.cleaned_data
+
 class DefaultTripForm(forms.ModelForm):
 
     has_for_start = forms.ModelChoiceField(queryset=None, widget=Select(attrs={'class': 'custom-select'}), 
@@ -154,18 +158,21 @@ class DefaultTripForm(forms.ModelForm):
 
     class Meta:
         model = DefaultTrip
-        fields =('morning_departure_time', 'morning_arriving_time', 'evening_departure_time','has_for_start', 'deactivate' )
+        fields =('morning_departure_time', 'morning_arriving_time', 'evening_departure_time',
+                'has_for_start', 'deactivate', 'user_is_driver')
         widgets = {
             'morning_departure_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
             'morning_arriving_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
             'evening_departure_time': TimeInput(attrs={'type': 'time', 'class': 'form-control require-input'}),
-            'deactivate': CheckboxInput(attrs={'type': 'checkbox', 'class': 'form-control require-input', 'onclick' : 'f(this)'}),
+            'deactivate': CheckboxInput(attrs={'class': 'toggle_button_deactivate_day', 
+                                                '@click' : 'deactivate_fields($event.target)' }),
+            'user_is_driver': CheckboxInput(attrs={'class': 'toggle_button_driver'}),
         }
 
 DefaultTripFormSet = modelformset_factory(DefaultTrip ,form=DefaultTripForm,
                                         extra=5, max_num=5, 
                                         fields = ('morning_departure_time', 'morning_arriving_time', 
-                                                    'evening_departure_time','has_for_start', 'deactivate'))
+                                                    'evening_departure_time','has_for_start', 'deactivate', 'user_is_driver'))
 
 class ContactForm(forms.Form):
     email = forms.EmailField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Adresse Email'}), 
@@ -173,3 +180,37 @@ class ContactForm(forms.Form):
     name = forms.CharField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Votre nom'}))
     subject = forms.CharField(widget=TextInput(attrs={'class': 'form-control', 'placeholder': 'Sujet du Message'}))
     message = forms.CharField(widget=forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Votre Message'}))
+
+class FirstConnectionForm(forms.ModelForm):
+    class Meta: 
+        model = UserProfile
+        fields = ('trainee', 'driver_license', 'car_owner', 'gender',)
+        widgets = {
+                'trainee': RadioSelect(attrs={'class': 'custom-control-input'}),
+                'driver_license': RadioSelect(attrs={'class': 'custom-control-input'}),
+                'car_owner': RadioSelect(attrs={'class': 'custom-control-input'}),
+                'gender': Select(attrs={'class': 'custom-select'})
+        }
+        labels = { 
+            'gender': 'Genre',
+        }
+        
+class PropositionForm(forms.ModelForm):
+
+    class Meta:
+        model = Proposition
+        fields = ('message',)
+
+        widgets = {
+            'message': Textarea(attrs={'class': 'form-control', 'placeholder': 'Par exemple : Je vous propose de nous retrouver à ...'}),
+        }
+
+class PropositionUpdateForm(forms.ModelForm):
+    class Meta: 
+        model = Proposition
+        fields = ('validated_proposal',)
+        widgets = {
+            'validated_proposal': CheckboxInput(attrs={'class': 'btn btn-success' ,'type': 'submit', 'value': 'Valider la proposition' })
+        }
+
+

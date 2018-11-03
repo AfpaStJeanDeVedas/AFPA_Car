@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block css %} "{% static 'carpooling/css/proposition.css' %}" {% endblock css %}
+{% block head %} <link rel="stylesheet" href="https://unpkg.com/tailwindcss/dist/tailwind.min.css"> {% endblock %}
+
+{% block section %}
+<div id="list">
+</div>
+
+<script type="text/javascript" src="{% static address_poc_url %}"></script>
+
+{% endblock section %}

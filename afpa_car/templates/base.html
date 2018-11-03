@@ -7,12 +7,17 @@
     <meta charset="utf-8">
     <title>{% block title %}AFPA-CAR{% endblock title %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1"> 
+
+    <!-- FavIcon -->
+    <link rel="shortcut icon" type="image/png" href="{% static 'img/favicon.png' %}"/>
+    
     
 
     <link rel="stylesheet" type="text/css" href="{% static 'css/bootstrap.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'css/base.css' %}" />
     <link rel="stylesheet" type="text/css" href="{% static 'carpooling/css/signup.css' %}" />
     <link rel="stylesheet" type="text/css" href= {% block css %} {% endblock css %} />
+    {% block head %}{% endblock %}
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp"
     crossorigin="anonymous">
     
@@ -32,12 +37,8 @@
 <body id="body_base" class="container">
     
     <header class="row">
-        <div class="col-md-4">
             <a href="{% url 'carpooling:index' %}"><img id="logo_afpa" src="{% static 'img/logo_afpa.jpg' %}" alt="AFPA"></a>
-        </div>
-        <div class="col-md-6">
-            <div id="titre_base">AFPACAR - Le Covoiturage de l'AFPA</div>
-        </div>
+            <div id="titre_base">Le Covoiturage de l'AFPA</div>
     </header>
 
     <div>
@@ -102,7 +103,6 @@
         </div>
     </footer>
 
-
     <!-- jQuery -->
     <script type="text/javascript" src="{% static 'js/jquery.js' %}"></script>
 
@@ -115,7 +115,7 @@
 
     <script>
         new Vue({
-            el: '#app_filtre_url_contenu',
+            el: '#filtre_url_navbar',
             data: {
         
             },
